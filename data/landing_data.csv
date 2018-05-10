@@ -1,4 +1,4 @@
-﻿Month,Day,Year,Species,Weight (Kg),Length (cm),Processing
+﻿month,day,year,species,weight,length,handling
 1,3,2016,YFT,52,,GGT
 1,3,2016,BET,55,,GGT
 1,3,2016,BET,61,,GGT
