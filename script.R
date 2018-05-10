@@ -17,4 +17,7 @@ weigth_total <- aggregate(benoa["weight"], benoa["species"], FUN = sum)
 ggplot(weigth_total, aes(x = species, y = weight)) + 
   geom_bar(stat = "identity") + theme(axis.text.x = element_text(size = 8, angle = 0))
 
-#fig.3. 
+#fig.3. the distribution of weigth within each species
+ggplot(data = benoa, aes(x = species, y = weight)) + geom_jitter(alpha = 0.3, color = "blue") + 
+  geom_boxplot(alpha = 0.1, color = "red")
+
