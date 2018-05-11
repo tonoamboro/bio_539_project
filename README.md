@@ -3,10 +3,10 @@
 Tono Amboro
 
 ## Description
-This repository was created as a final project assignment on Big Data Analysis course, which will attempt to demonstrate our understanding and expertise gained from the course. 
+This repository was created as a part of final project assignment on Big Data Analysis course, which will attempt to demonstrate our understanding and expertise on big data analysis gained from the course. 
 
 ## About the data
-Data stored in data directory here is a factual fisheries landing data recorded in Benoa fishing port, Indonesia in the year 2016. It contains several species, mostly billfish and giant-tuna species. It has length measurement record and individual weight records. It also has date records (dates and months), and the type of product when the vessel landed their fish. The usability of the data is restricted and designed specifically for this assignment. You may NOT use this data without permission from the author.
+Data stored in data directory here is a factual fisheries landing data recorded in Benoa fishing port, Indonesia in the year 2016. It has more than 60 thousand records which contains several species, mostly billfish and giant-tuna species. It has length measurement record and individual weight records. It also has date records (dates and months), and the type of product when the vessel landed their fish. The usability of the data is restricted and designed specifically for this assignment. You may NOT use this data without permission from the author.
 
 ## About the sript.R
 The script is just the environment for me to run several codes that I need before I write it to the .Rmd file. You may NOT use this script for replicating the work similar to this work because not all the codes inside this script are used. 
