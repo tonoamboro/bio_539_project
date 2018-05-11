@@ -4,9 +4,7 @@ title: Visualization of Landing Data and Analysis of Length-Weight Relationship 
 author: "Tono Amboro"
 date: "5/10/2018"
 output: 
-  html_document: default
   pdf_document: default
-  word_document: default
 fig_caption: yes
 bibliography: major_paper.bib
 ---
@@ -19,6 +17,7 @@ library(ggpubr)
 library(knitr)
 library(janitor)
 library(gridExtra)
+library(FSA)
 ```
 
 ## Introduction
@@ -41,7 +40,7 @@ total_prod <- totalweigth_by_species %>% summarise(total_production = sum(total)
 ```
 ## Visualization of Landing Data 
 
-The total production (landing) of big pelagic fishes caught by the tuna longline fishing vessel in Benoa fishing port at 2016 was `r total_prod` tonnes. Total production big pelagic fishes caught by the tuna longline fishing vessel in Benoa fishing port at 2016 was `r total_prod` tonnes. These catches including Albacore tuna (ALB), Bigeye tuna (BET), Black marlin (BLM), Blue marlin (BUM), Black escolar (LEC), Stripped marlin (MLS), Southern bluefin tuna (SBT), Swordfish (SWO), Wahoo (WHO), and Yellowfin tuna (YFT). The composition of catches landed by tuna longline fishing vessel in Benoa fishing on 2016 can be seen in Figure 1 below.   
+Total production big pelagic fishes caught by the tuna longline fishing vessel in Benoa fishing port at 2016 was `r total_prod` tonnes. These catches including Albacore tuna (ALB), Bigeye tuna (BET), Black marlin (BLM), Blue marlin (BUM), Black escolar (LEC), Stripped marlin (MLS), Southern bluefin tuna (SBT), Swordfish (SWO), Wahoo (WHO), and Yellowfin tuna (YFT). The composition of catches landed by tuna longline fishing vessel in Benoa fishing on 2016 can be seen in Figure 1 below.   
 ```{r plot_1, echo=FALSE, fig.width= 4, fig.height= 4, fig.cap="\\label{fig:fig}**Figure 1.** Total production by species"} 
 benoa <- read.csv("data/landing_data.csv")
 benoa <- benoa %>% mutate(weight_ton = weight/1000)
@@ -72,7 +71,7 @@ totalweigth_by_species <- benoa %>% group_by(species) %>% summarise(total = sum(
 table1 <- totalweigth_by_species %>% rename(Species = species, 'Total production [ton]' = total) 
 table1_fix <- table1 %>% adorn_totals("row")
 
-kable(table1_fix, caption = "Table 1. Total production by species", align = c('c', 'r'))
+kable(table1_fix, caption = "**Table 1.** Total production by species", align = c('c', 'r'))
 ```
 
 Tuna and billfish are high-speed swimmers and long-distance migrators[@Westneat2001]. As they swimming all the time searching for food, the migration pattern is determined by their spawning cycle and the food availability. In addition,  the sea surface temperature (SST) also determine the migratory timing [@Dufour2010].  Moreover, these fishes are searching for food up to the temperate water area, then back to the tropical area for reproduction purpose. This condition led to the seasonal change in fishing activities. Although the fishing time is open all year round, there are some patterns regarding high season and low season in catching the fish. Figure 2 illustrates the landing pattern as it represents the monthly production in Benoa fishing port.
@@ -100,6 +99,101 @@ grid.arrange(plot_totalweight_by_month, plot_monthly_landing, ncol=2, widths=c(5
 
 As we can see in Figure 2, there are at least three peak seasons in 2016 where one of them is way higher than the others. The month of June is the highest landing in Benoa fishing port in 2016, followed by October and April respectively. Yellowfin tuna and Bigeye tuna is the driver that makes June is the highest landing of the year. This condition is caused by the similarity of the habitat among this two species. In term of vertical distribution, they both distributed in the mesopelagic water column [@Goujon2000], where horizontally, they spread in tropical and sub-tropical oceanic [@IOTC2017].  
 
+Explicitly, the distribution of weight for each species is presented in Figure 3. In this figure, we can see the clusterization of weight of the species landed in this fishing site which is presented as yellow dots. Meanwhile, the range of weight is presented by the straight blue line and dots.
+```{r plot_3, echo=FALSE, fig.width= 6, fig.height= 4, fig.cap="\\label{fig:fig}**Figure 3.** Weight distribution by species"}
+benoa <- read.csv("data/landing_data.csv")
+ggplot(data = benoa, aes(x = species, y = weight)) + geom_jitter(alpha = 0.25, color = "yellow") + 
+  geom_boxplot(alpha = 0.1, color = "blue") + labs(x = "Species", y = "Weight [kg]")
+```
+
+## Length-Weight Relationship of Tuna Species
+
+Based on the data visualization in the above, tuna species such as Bigeye tuna, Yellowfin tuna, and Southern bluefin tuna dominated the total catches landed in Benoa fishing port in the year 2016. With this condition, the analysis of length-weight relationship will be attempted only on these three species. The minimum requirement to run this analysis is the measurement of length (L) and weight (W) of individual fish at the time of capture (Table 2.). Any other information about individual fish, such as date, month, year of capture, gears, etc. can also be recorded. 
+``` {r echo = FALSE, results = 'asis'}
+benoa <- read.csv("data/landing_data.csv")
+benoa <- benoa %>% mutate(weight_ton = weight/1000)
+benoa_clean <- benoa %>% filter(!is.na(weight)) %>% filter(!is.na(length)) %>%
+  filter(handling !="") %>% filter(species !="")
+table2_fix <- head(benoa_clean, 7)
+kable(table2_fix, caption = "**Table 2.** Data requirement for L-W analysis")
+```
+
+The type of length measurement performed by the enumerator of this data is fork length (FL) measurement (Figure 4.). This type of measurement is the requirement for measuring tuna species [@IOTC2013]. Fork length is the length from the most anterior point to the anterior notch in the fork of the tail. 
+![](/Users/r.tonoamboro/Documents/mesm_program/courses/bio_539/bio_539_project/fork_length.png)
+**Figure 4.** Fork length measurement for tuna species [@IOTC2013]
+
+It is essential to understand that the relationship between length and weight of individual fish is not linear[@Froese2006]. Please see Figure 5 as an example. It is because of length is a linear measure and weight is related to volume. However, the variability of weight increases as the length of the fish increases. This condition led to misassumption of using the simple linear regression on this analysis. In fact, at least a two-parameter power function should be used to model the length-weight relationship. Specifically, the most common model that can be used is 
+\begin{equation}
+\label{eq-WaLb}
+W = a L ^b 
+\end{equation}
+where *a* and *b* are constants. The length-weight model can be transformed to a linear model by taking the natural logarithms of both sides and simplifying,
+\begin{equation}
+\label{eq-logWaLb}
+log(W) = log(a) + blog(L) 
+\end{equation}
+Thus, we could derive *y = log(W)*, *x = log(L)*, slope=b, and intercept=log(a). 
+```{r plot_4, echo=FALSE, fig.width= 6, fig.height= 4, fig.cap="\\label{fig:fig}**Figure 5.** Length and weight of Bigeye tuna"}
+benoa <- read.csv("data/landing_data.csv")
+benoa_clean <- benoa %>% filter(!is.na(weight)) %>% filter(!is.na(length)) %>%
+  filter(handling !="") %>% filter(species !="")
+
+#bigeye tuna
+bigeye <- benoa_clean %>% filter(species == "BET")
+
+#lw_raw_plots
+bigeye_raw <- lm(weight ~ length, data = bigeye)
+fitPlot(bigeye_raw, xlab="Length [cm]", ylab="Weight [kg]", main="")
+```
+
+### Fitting the data to model
+#### Bigeye tuna
+```{r plot_5, echo=FALSE, fig.width= 6, fig.height= 4, fig.cap="\\label{fig:fig}**Figure 6.** Natural log transformed fork length and weight of Bigeye tuna"}
+benoa <- read.csv("data/landing_data.csv")
+benoa_clean <- benoa %>% filter(!is.na(weight)) %>% filter(!is.na(length)) %>%
+  filter(handling !="") %>% filter(species !="")
+bigeye <- benoa_clean %>% filter(species == "BET")
+bigeye$logL <- log(bigeye$length) 
+bigeye$logW <- log(bigeye$weight)
+lm1 <- lm(logW~logL, data=bigeye)
+fitPlot(lm1,xlab="log Fork Length [cm]",ylab="log Weight [kg]")
+
+summary(lm1)
+```
+Based on Figure 6 and the summary in the above, we can see that the model shows a tight fit to the transformed data (*R^2^ =0.94*) with the possible exception only of a few individuals. The equation of the best-fit line is *log(W) = -10.48 + 2.92xlog(L)* on the transformed scale and W =0.000028L^2.92^ on the original scale.
+
+#### Yellowfin tuna
+```{r plot_6, echo=FALSE, fig.width= 6, fig.height= 4, fig.cap="\\label{fig:fig}**Figure 7.** Natural log transformed fork length and weight of Yellowfin tuna"}
+benoa <- read.csv("data/landing_data.csv")
+benoa_clean <- benoa %>% filter(!is.na(weight)) %>% filter(!is.na(length)) %>%
+  filter(handling !="") %>% filter(species !="")
+yellowfin <- benoa_clean %>% filter(species == "YFT")
+yellowfin$logL <- log(yellowfin$length) 
+yellowfin$logW <- log(yellowfin$weight)
+lm2 <- lm(logW~logL, data=yellowfin)
+fitPlot(lm2,xlab="log Fork Length [cm]",ylab="log Weight [kg]")
+
+summary(lm2)
+```
+Similarly, based on the summary and Figure 7, it is seen that the model exhibits a tight fit to the transformed data (*R^2^ =0.92*). The equation of the best-fit line is *log(W) = -10.44 + 2.89xlog(L)* on the transformed scale and in the original equation become W =0.000029L^2.89^.
+
+#### Southern bluefin tuna
+```{r plot_7, echo=FALSE, fig.width= 6, fig.height= 4, fig.cap="\\label{fig:fig}**Figure 8.** Natural log transformed fork length and weight of Southern bluefin tuna"}
+benoa <- read.csv("data/landing_data.csv")
+benoa_clean <- benoa %>% filter(!is.na(weight)) %>% filter(!is.na(length)) %>%
+  filter(handling !="") %>% filter(species !="")
+bluefin <- benoa_clean %>% filter(species == "SBT")
+bluefin$logL <- log(bluefin$length) 
+bluefin$logW <- log(bluefin$weight)
+lm3 <- lm(logW~logL, data=bluefin)
+fitPlot(lm3,xlab="log Fork Length [cm]",ylab="log Weight [kg]")
+
+summary(lm3)
+```
+Different from the two previous result, Figure 8 and the summary in the above shown that the model doesn't fit to the transformed data (*R^2^ =0.68*). Based on the R^2^ value, the model only fit about 68% of the available data. The best-fit line is generated by *log(W) = -8.10 + 2.46xlog(L)* which is equal to W =0.00030L^2.46^. 
+
+### Results interpretation
+The length-weight relationship analysis shows that a value (intercept) from all species is less influential to the analysis than the b value due to very small result: 0.000028 for Bigeye tuna, 0.000029 for Yellowfin tuna, and 0.00030 for Southern bluefin tuna. The b values in this study are less than 3 but higher than 2.4 which means that the growth pattern of tuna species in our study area is negative allometric or the growth in length is faster the growth in shape [@Froese2006]. Usually, the b value is varied between 2.5 to 4 [@LeCren1951]. Our result in this analysis corresponds to the result from other studies which most of them are in the negative allometric growth pattern [@Wang2002;@Uchiyama2003;@Zhu2008;@BatistaDaSilva2011;@Parera2013] except study conducted in the Pacific Ocean [@Zhu2008]. As the habitat of Bigeye tuna and Yellowfin tuna is mainly in the surface (epipelagic water column) and the sea temperature in Indonesia is relatively the same, the length-weigth relationship within these two species become similar. In contrary, Southern bluefin tuna mostly distributed in subtropical water area where the temperature is lower than in tropical water area makes the growth in weight (b = 2.46) is slower than the other two species.  
 
 
 # References
