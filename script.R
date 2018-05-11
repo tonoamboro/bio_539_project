@@ -4,6 +4,7 @@ install.packages("gridExtra")
 install.packages("ggpubr")
 install.packages("janitor")
 install.packages("FSA")
+install.packages("plotrix")
 library(plotly)
 library(gridExtra)
 library(tidyverse)
@@ -11,6 +12,7 @@ library(ggpubr)
 library(knitr)
 library(janitor)
 library(FSA)
+library(plotrix)
 
 #load and tidy up the data
 benoa <- read.csv("data/landing_data.csv")
@@ -31,6 +33,16 @@ plot_monthly_landing <- ggplot(monthly_landing, aes(x = month, y = weight_by_mon
 #compute total weight by species
 totalweigth_by_species <- benoa %>% group_by(species) %>% summarise(total = sum(weight_ton))
 total_prod <- totalweigth_by_species %>% summarise(total_production = sum(total))
+
+#piechart_new with Percentages
+#slices <- c(44.142, 1279.459, 1.676, 7.664, 14.421, 0.830, 527.114, 
+#            52.195, 10.948, 1198.497) 
+#lbls <- c("ALB", "BET", "BLM", "BUM", "LEC", "MLS", "SBT", 
+#          "SWO", "WAH", "YFT")
+#pct <- round(slices/sum(slices)*100)
+#lbls <- paste(lbls, pct) # add percents to labels 
+#lbls <- paste(lbls,"%",sep="") # ad % to labels 
+#pie(slices,labels = lbls, col=rainbow(length(lbls)))
 
 #piechart of total weight by species (plot 1)
 plot_ly(totalweigth_by_species, labels = ~species, values = ~total, type = 'pie',
