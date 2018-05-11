@@ -2,18 +2,20 @@
 install.packages("plotly")
 install.packages("gridExtra")
 install.packages("ggpubr")
-install.packages("plotly")
 install.packages("janitor")
-library(gridExtra)
+install.packages("FSA")
 library(plotly)
+library(gridExtra)
 library(tidyverse)
 library(ggpubr)
 library(knitr)
 library(janitor)
-
+library(FSA)
 
 #load and tidy up the data
 benoa <- read.csv("data/landing_data.csv")
+
+#DATA VISUALIZATION
 benoa <- benoa %>% mutate(weight_ton = weight/1000)
 
 #convert month as character
@@ -59,54 +61,52 @@ plot_totalweight_by_month <- ggplot(totalweight_by_month, aes(x = month, y = tot
 #combine total weight by month and monthly landing
 grid.arrange(plot_totalweight_by_month, plot_monthly_landing, ncol=2, widths=c(5,7))
 
-#benoa <- benoa %>% mutate(month_name = month.abb[month])
-head(benoa)
-tail(benoa)
-head_benoa <- head(benoa, 10)
 
-#data cleaning for length analysis
+#LENGTH-WEIGHT ANALYSIS
+#data cleaning
 benoa_clean <- benoa %>% filter(!is.na(weight)) %>% filter(!is.na(length)) %>%
   filter(handling !="") %>% filter(species !="")
-write_csv(benoa_clean, "data/length_data.csv")
+#create table 2
+table2_fix <- head(benoa_clean, 7)
+#bigeye tuna
+bigeye <- benoa_clean %>% filter(species == "BET")
+#yellowfin
+yellowfin <- benoa_clean %>% filter(species == "YFT")
+#bluefin
+bluefin <- benoa_clean %>% filter(species == "SBT")
 
-#load the clean data
-benoa_length <- read.csv("data/length_data.csv")
-unique(benoa_length$species)
+#lw_raw_plots
+bigeye_raw <- lm(weight ~ length, data = bigeye)
+lwbigeye_plot<- fitPlot(bigeye_raw, xlab="Length [cm]", ylab="Weight [kg]", 
+                        main="Bigeye tuna")
+yellowfin_raw <- lm(weight ~ length, data = yellowfin)
+lwyellowfin_plot<- fitPlot(yellowfin_raw, xlab="Length [cm]", ylab="Weight [kg]", 
+                           main="Yellowfin tuna")
+bluefin_raw <- lm(weight ~ length, data = bluefin)
+lwbluefin_plot<- fitPlot(bluefin_raw, xlab="Length [cm]", ylab="Weight [kg]", 
+                         main="Bluefin tuna")
+par(mfrow=c(3,1), lwbigeye_plot, lwyellowfin_plot, lwbluefin_plot)
 
+#fitting data to the model
+##Bigeye tuna
+bigeye$logL <- log(bigeye$length) 
+bigeye$logW <- log(bigeye$weight)
+lm1 <- lm(logW~logL, data=bigeye)
+fitPlot(lm1,xlab="log Fork Length [cm]",ylab="log Weight [kg]")
+summary(lm1)
 
-#to insert a picture in rmarkdown
-# ![Caption for the picture.](/path/to/image.png)
+##Yellowfin tuna
+yellowfin$logL <- log(yellowfin$length) 
+yellowfin$logW <- log(yellowfin$weight)
+lm2 <- lm(logW~logL, data=yellowfin)
+fitPlot(lm2,xlab="log Fork Length [cm]",ylab="log Weight [kg]")
+summary(lm2)
 
-#fig.1. the composition of species landed in benoa fishing port 2016
-ggplot(data = benoa) + geom_bar(mapping = aes(x = species)) + 
-  theme(axis.text.x = element_text(size = 8, angle = 0))
-
-#fig.2. the total weight (ton) of each species landed in benoa fishing port 2016
-weigth_total <- aggregate(benoa["weight_ton"], benoa["species"], FUN = sum)
-ggplot(weigth_total, aes(x = species, y = weight_ton)) + 
-  geom_bar(stat = "identity") + theme(axis.text.x = element_text(size = 8, angle = 0))
-
-#fig.3. the distribution of weigth within each species
-ggplot(data = benoa, aes(x = species, y = weight)) + geom_jitter(alpha = 0.25, color = "yellow") + 
-  geom_boxplot(alpha = 0.1, color = "blue")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+##Bluefin tuna
+bluefin$logL <- log(bluefin$length) 
+bluefin$logW <- log(bluefin$weight)
+lm3 <- lm(logW~logL, data=bluefin)
+fitPlot(lm3,xlab="log Fork Length [cm]",ylab="log Weight [kg]")
+summary(lm3)
 
 
