@@ -1,0 +1,105 @@
+---
+title: Visualization of Landing Data and Analysis of Length-Weight Relationship of
+  Tuna Species in Benoa Fishing Port, Indonesia
+author: "Tono Amboro"
+date: "5/10/2018"
+output: 
+  html_document: default
+  pdf_document: default
+  word_document: default
+fig_caption: yes
+bibliography: major_paper.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(plotly)
+library(tidyverse)
+library(ggpubr)
+library(knitr)
+library(janitor)
+library(gridExtra)
+```
+
+## Introduction
+
+Indonesia is the world’s largest archipelago country which consists of more than 17,500 islands with the combined length of coastline around 104,000 km. As a tropical county located between the Pacific Ocean and the Indian Ocean, Indonesia’s waters consist of a highly varied ecosystem which produces high biodiversity and productivity of fish resources. The mix between warm and temperate sea surface temperature (SST) make Indonesia’s waters suitable as an area for spawning ground especially for highly migratory fish such as tuna, billfish, and shark. With this condition, Indonesia is considered as one of the biggest producers of marine capture fisheries and is producing a significant portion of the world’s fish catches, especially for tuna species [@FAO2010].
+
+To ensure sustainability of the fisheries, the Ministry of Marine Affairs and Fisheries (MMAF) Republic of Indonesia have implemented several management strategies. These strategies included unique vessel identifier, mandatory vessel monitoring system (VMS), limitation on fishing days, onboard observer program, implementing quota system, closing the fishing area, implementation of catch documentation scheme. However, these options are expensive and not straightforward. Alternatively, the traditional input in fisheries management and policy such as fisheries landing data is preferable. 
+
+Fisheries landing data or catch data is one of several parameters that highly crucial for fisheries management policy. It refers to the total amount of fish taken out from the sea. It could measure the impact of fishing activity on fish population and food chains because it delineates the removal rates of individual species and biomass from an ecosystem [@Duggan2016].  This data is needed to evaluate the status of fish resources as well as to manage the fisheries in Indonesia. 
+
+In Indonesia, catch data is recorded once the fishing vessel unloads their catch in fishing port (landing site). The weight of landings is frequently less than the weight of catch because gills and guts are thrown overboard if fish are cleaned (handled) at sea; and some of a vessel’s catch may be eaten by the crew, used for bait or discarded overboard. Nevertheless, the weight data can provide evidence of how well the stocks are performing in response to fishing activity.
+
+In response to delineates the landing data, here we visualized the landing data from Benoa fishing port where the data was collected in 2016. This landing data was derived from tuna longline fishing vessel which registered to the Indian Ocean Tuna Commission (IOTC). The data only consist of big pelagic fishes including tuna, billfish, and shark. In addition to the data visualization, we also analyze the length-weight relationship of several Tuna species. This analysis is based on the length frequency data that recorded randomly by the enumerators in this fishing port. 
+
+```{r include=FALSE}
+benoa <- read.csv("data/landing_data.csv")
+benoa <- benoa %>% mutate(weight_ton = weight/1000)
+totalweigth_by_species <- benoa %>% group_by(species) %>% summarise(total = sum(weight_ton))
+total_prod <- totalweigth_by_species %>% summarise(total_production = sum(total))
+```
+## Visualization of Landing Data 
+
+The total production (landing) of big pelagic fishes caught by the tuna longline fishing vessel in Benoa fishing port at 2016 was `r total_prod` tonnes. Total production big pelagic fishes caught by the tuna longline fishing vessel in Benoa fishing port at 2016 was `r total_prod` tonnes. These catches including Albacore tuna (ALB), Bigeye tuna (BET), Black marlin (BLM), Blue marlin (BUM), Black escolar (LEC), Stripped marlin (MLS), Southern bluefin tuna (SBT), Swordfish (SWO), Wahoo (WHO), and Yellowfin tuna (YFT). The composition of catches landed by tuna longline fishing vessel in Benoa fishing on 2016 can be seen in Figure 1 below.   
+```{r plot_1, echo=FALSE, fig.width= 4, fig.height= 4, fig.cap="\\label{fig:fig}**Figure 1.** Total production by species"} 
+benoa <- read.csv("data/landing_data.csv")
+benoa <- benoa %>% mutate(weight_ton = weight/1000)
+
+totalweigth_by_species <- benoa %>% group_by(species) %>% summarise(total = sum(weight_ton))
+
+plot_ly(totalweigth_by_species, labels = ~species, values = ~total, type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',
+             insidetextfont = list(color = '#FFFFFF'),
+             hoverinfo = 'text',
+             text = ~paste('', total, 'ton'),
+             marker = list(colors = colors,
+                           line = list(color = '#FFFFFF', width = 1)),
+             #The 'pull' attribute can also be used to create space between the sectors
+             showlegend = FALSE) %>%
+  layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
+
+As we can see on the Figure 1, there are three species of fishes which dominated the total catches landed in this fishing port. Among these species, Bigeye tuna shared about 40.8% of the total catches followed by Yellowfin tuna and Southern bluefin tuna respectively at 38.2% and 16.8%. The detail of total catches by species is presented in Table 1 below. 
+``` {r echo = FALSE, results = 'asis'}
+benoa <- read.csv("data/landing_data.csv")
+benoa <- benoa %>% mutate(weight_ton = weight/1000)
+
+totalweigth_by_species <- benoa %>% group_by(species) %>% summarise(total = sum(weight_ton))
+
+table1 <- totalweigth_by_species %>% rename(Species = species, 'Total production [ton]' = total) 
+table1_fix <- table1 %>% adorn_totals("row")
+
+kable(table1_fix, caption = "Table 1. Total production by species", align = c('c', 'r'))
+```
+
+Tuna and billfish are high-speed swimmers and long-distance migrators[@Westneat2001]. As they swimming all the time searching for food, the migration pattern is determined by their spawning cycle and the food availability. In addition,  the sea surface temperature (SST) also determine the migratory timing [@Dufour2010].  Moreover, these fishes are searching for food up to the temperate water area, then back to the tropical area for reproduction purpose. This condition led to the seasonal change in fishing activities. Although the fishing time is open all year round, there are some patterns regarding high season and low season in catching the fish. Figure 2 illustrates the landing pattern as it represents the monthly production in Benoa fishing port.
+```{r plot_2, echo=FALSE, fig.width= 7, fig.height= 4, fig.cap="\\label{fig:fig}**Figure 2.** Monthly production"}
+benoa <- read.csv("data/landing_data.csv")
+benoa <- benoa %>% mutate(weight_ton = weight/1000)
+
+#plot monthly landing per species
+monthly_landing <- benoa %>% group_by(month, species) %>%
+  summarize(weight_by_month_species = sum(weight_ton))
+plot_monthly_landing <- ggplot(monthly_landing, aes(x = month, y = weight_by_month_species, color = species)) + 
+  geom_line() + geom_point() + scale_x_continuous(name = "Month", breaks = seq(1, 12, 1)) + 
+  scale_y_continuous(name = "Weight [ton]")
+
+#barchart for monthly catches
+totalweight_by_month <- benoa %>% group_by(month) %>% summarise(total = sum(weight_ton))
+plot_totalweight_by_month <- ggplot(totalweight_by_month, aes(x = month, y = total)) + 
+  geom_bar(stat = "identity") + theme(axis.text.x = element_text(size = 8, angle = 0)) + 
+  scale_x_continuous(name = "Month", breaks = seq(1, 12, 1)) + 
+  scale_y_continuous(name = "Weight [ton]")
+
+#combine total weight by month and monthly landing
+grid.arrange(plot_totalweight_by_month, plot_monthly_landing, ncol=2, widths=c(5,7))
+```
+
+As we can see in Figure 2, there are at least three peak seasons in 2016 where one of them is way higher than the others. The month of June is the highest landing in Benoa fishing port in 2016, followed by October and April respectively. Yellowfin tuna and Bigeye tuna is the driver that makes June is the highest landing of the year. This condition is caused by the similarity of the habitat among this two species. In term of vertical distribution, they both distributed in the mesopelagic water column [@Goujon2000], where horizontally, they spread in tropical and sub-tropical oceanic [@IOTC2017].  
+
+
+
+# References
