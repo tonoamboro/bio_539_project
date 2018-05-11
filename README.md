@@ -22,4 +22,4 @@ If you still want to use the **plot_ly()** function and create a .pdf file, you 
 4. Save as your word document to a .pdf file.
 
 ## Note!
-Some information on the website suggested updating the **plotly** package will resolve the problem. However, until this work uploaded, there is no change between before and after updating the package.
+Some information on the website suggested updating the **plotly** package will resolve the problem. However, until this work uploaded, there is no difference between before and after updating the package.
