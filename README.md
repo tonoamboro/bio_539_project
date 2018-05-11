@@ -15,9 +15,9 @@ The script is just the environment for me to run several codes that I need befor
 This is the file that you may need to replicate the process. Attention! This file contains a function (**plot_ly()**) that PREVENT you to knit your work into .pdf and word file. This function has an interactive plot that only works on .html file. You MAY NEED to modify or not use the function if you want to export your work to .pdf and word file. 
 
 ## Troubleshooting! 
-If you still want to use the (**plot_ly()**) function and create a .pdf file, you may need to:
-1. Disable the (**plot_ly()**) function first, then knit your work to a word document.
-2. Enable the (**plot_ly()**) function, then knit your work to .html file, and take a screenshot of the plot/s. 
+If you still want to use the **plot_ly()** function and create a .pdf file, you may need to:
+1. Disable the **plot_ly()** function first, then knit your work to a word document.
+2. Enable the **plot_ly()** function, then knit your work to .html file, and take a screenshot of the plot/s. 
 3. Insert the screenshot plot/s to your word document.
 4. Save as your word document to a .pdf file.
 
